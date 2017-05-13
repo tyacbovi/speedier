@@ -1,0 +1,6 @@
+[event a]
+event_ids = ["1", "2"]
+[event b]
+event_ids = ["3", "4", "5"]
+[event c]
+event_ids = ["6", "7"]
