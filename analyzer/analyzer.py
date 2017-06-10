@@ -19,12 +19,12 @@ class Analyzer:
         isinstance(path_timestamps, list)
         return path_timestamps[-1] - path_timestamps[0]
 
-    def _retrieve_events(self, name, start_index, step_size):
+    def _retrieve_ordered_events_by_time(self, name, start_index, step_size):
         data = self._data_source.zrangebyscore(name=name, start=start_index, num=step_size,
                                                min=-float("inf"), max=float("inf"))
         return data
 
-    def _analyze_trace(self, trace_id):
+    def _analyze_trace_recorded_paths(self, trace_id):
         # loop setup
         current_size = 0
         trace_event_list_size = self._data_source.zcount(name=trace_id, min=-float("inf"), max=float("inf"))
@@ -33,13 +33,13 @@ class Analyzer:
         data_collection = []
 
         while current_size <= trace_event_list_size or len(data_collection) is not 0:
-            data_collection += (self._retrieve_events(name=trace_id, start_index=current_size, step_size=step_size))
+            data_collection += (self._retrieve_ordered_events_by_time(name=trace_id, start_index=current_size, step_size=step_size))
             current_size = current_size + step_size
 
             # traverse time ordered events list
             while len(data_collection) != 0:
                 if len(self._analyzed_path) > len(data_collection):
-                    data_collection += (self._retrieve_events(name=trace_id, start_index=current_size, step_size=step_size))
+                    data_collection += (self._retrieve_ordered_events_by_time(name=trace_id, start_index=current_size, step_size=step_size))
                     current_size = current_size + step_size
 
                 timestamps = []
@@ -75,13 +75,13 @@ class Analyzer:
     def analyze(self):
         print self._data_source.keys()
         for trace_id in self._data_source.keys():
-            self._analyze_trace(trace_id)
+            self._analyze_trace_recorded_paths(trace_id)
 
 
 def main():
-    path = trace_path.TracePath(
+    path_definitions = trace_path.TracePath(
         trace_paths_definitions="/local/dev/performaceAnalyzer/demo_data_generator/test_routes_definition")
-    Analyzer(path).analyze()
+    Analyzer(path_definitions).analyze()
 
 if __name__ == "__main__":
     main()
